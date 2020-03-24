@@ -56,6 +56,7 @@ void setup()
   ledcSetup(LED_PWM_CHANNEL, 4000, 8);
 
   ledcAttachPin(ANALOGUE_SECONDS_PIN, ANALOGUE_DISPLAY_CHANNEL);
+  WiFi.setHostname("Meterclock");
 
   //WiFiManager
   WiFiManager wifiManager;
