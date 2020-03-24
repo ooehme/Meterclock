@@ -5,8 +5,8 @@
 #include <WebServer.h>
 #include <WiFiManager.h>
 
-const char *ssid = "Pinkbase";
-const char *password = "lk2upv8s";
+const char *ssid = "blablubb";
+const char *password = "foobar";
 
 const char *ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = 0;
@@ -70,14 +70,12 @@ void setup()
     Serial.print(".");
   }
 
-
   Serial.println(" CONNECTED");
   */
+
   //WiFiManager
   WiFiManager wifiManager;
-  
   wifiManager.autoConnect("MeterClock");
-
 
   //init and get the time
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
@@ -107,7 +105,7 @@ void showLocalTime()
   displaySeconds(timeToInt(&timeinfo, "%S"));
   assignMinutes(timeToInt(&timeinfo, "%M"));
   assignHours(timeToInt(&timeinfo, "%H"));
-  
+
   ledcWrite(LED_PWM_CHANNEL, LED_BRIGHTNESS);
 }
 
