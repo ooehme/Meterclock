@@ -5,9 +5,6 @@
 #include <WebServer.h>
 #include <WiFiManager.h>
 
-const char *ssid = "blablubb";
-const char *password = "foobar";
-
 const char *ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = 0;
 const int daylightOffset_sec = 3600;
@@ -60,26 +57,12 @@ void setup()
 
   ledcAttachPin(ANALOGUE_SECONDS_PIN, ANALOGUE_DISPLAY_CHANNEL);
 
-  //connect to WiFi
-  /*
-  Serial.printf("Connecting to %s ", ssid);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(500);
-    Serial.print(".");
-  }
-
-  Serial.println(" CONNECTED");
-  */
-
   //WiFiManager
   WiFiManager wifiManager;
   wifiManager.autoConnect("MeterClock");
 
   //init and get the time
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-
   showLocalTime();
 
   //disconnect WiFi as it's no longer needed
