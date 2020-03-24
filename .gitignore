@@ -11,6 +11,7 @@
 .pio
 
 ### VisualStudioCode ###
+.vscode
 .vscode/*
 
 ### VisualStudioCode Patch ###
