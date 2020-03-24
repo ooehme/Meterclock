@@ -8,6 +8,9 @@
 const char *ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = 0;
 const int daylightOffset_sec = 3600;
+const int updateDelay_sec = 86400; // wait for one day to update from ntp
+time_t currentTime;
+time_t nextUpdateTime;
 
 //PWM channels
 #define LED_PWM_CHANNEL 0
@@ -47,6 +50,8 @@ void displaySeconds(int currentSeconds);
 void assignMinutes(int currentMinutes);
 void assignHours(int currentHours);
 void showLocalTime();
+void getTimeFromNtp();
+void configModeCallback (WiFiManager *myWiFiManager);
 
 void setup()
 {
@@ -58,8 +63,25 @@ void setup()
   ledcAttachPin(ANALOGUE_SECONDS_PIN, ANALOGUE_DISPLAY_CHANNEL);
   WiFi.setHostname("Meterclock");
 
+  getTimeFromNtp();
+}
+
+void loop()
+{
+  delay(1000);
+  showLocalTime();
+  if (currentTime >= nextUpdateTime)
+  {
+    Serial.println("UPDATE TIME");
+    getTimeFromNtp();
+  }
+}
+
+void getTimeFromNtp()
+{
   //WiFiManager
   WiFiManager wifiManager;
+  wifiManager.setConfigPortalTimeout(180);
   wifiManager.autoConnect("MeterClock");
 
   //init and get the time
@@ -69,12 +91,7 @@ void setup()
   //disconnect WiFi as it's no longer needed
   WiFi.disconnect(true);
   WiFi.mode(WIFI_OFF);
-}
-
-void loop()
-{
-  delay(1000);
-  showLocalTime();
+  nextUpdateTime = currentTime + updateDelay_sec;
 }
 
 void showLocalTime()
@@ -91,6 +108,8 @@ void showLocalTime()
   assignHours(timeToInt(&timeinfo, "%H"));
 
   ledcWrite(LED_PWM_CHANNEL, LED_BRIGHTNESS);
+
+  time(&currentTime);
 }
 
 void displaySeconds(int currentSeconds)
