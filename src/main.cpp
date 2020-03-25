@@ -5,7 +5,7 @@
 #include <WebServer.h>
 #include <WiFiManager.h>
 
-const char *ntpServer = "pool.ntp.org";
+const char *ntpServer = "de.pool.ntp.org";
 const long gmtOffset_sec = 0;
 const int daylightOffset_sec = 3600;
 const int updateDelay_sec = 86400; // wait for one day to update from ntp
@@ -26,7 +26,8 @@ uint8_t LED_BRIGHTNESS = 128;
 #define LED_MIN_8_PIN 19
 #define LED_MIN_16_PIN 18
 #define LED_MIN_32_PIN 2
-int minuteLeds[6] = {LED_MIN_1_PIN, LED_MIN_2_PIN, LED_MIN_4_PIN, LED_MIN_8_PIN, LED_MIN_16_PIN, LED_MIN_32_PIN};
+#define LED_MIN_SIZE 6
+const int minuteLeds[LED_MIN_SIZE] = {LED_MIN_1_PIN, LED_MIN_2_PIN, LED_MIN_4_PIN, LED_MIN_8_PIN, LED_MIN_16_PIN, LED_MIN_32_PIN};
 
 //Hours LEDs
 #define LED_HOUR_1_PIN 26
@@ -34,7 +35,8 @@ int minuteLeds[6] = {LED_MIN_1_PIN, LED_MIN_2_PIN, LED_MIN_4_PIN, LED_MIN_8_PIN,
 #define LED_HOUR_4_PIN 14
 #define LED_HOUR_8_PIN 12
 #define LED_HOUR_16_PIN 13
-int hourLeds[5] = {LED_HOUR_1_PIN, LED_HOUR_2_PIN, LED_HOUR_4_PIN, LED_HOUR_8_PIN, LED_HOUR_16_PIN};
+#define LED_HOUR_SIZE 5
+const int hourLeds[LED_HOUR_SIZE] = {LED_HOUR_1_PIN, LED_HOUR_2_PIN, LED_HOUR_4_PIN, LED_HOUR_8_PIN, LED_HOUR_16_PIN};
 
 //Seconds analogue display
 #define ANALOGUE_SECONDS_PIN 25
@@ -47,11 +49,10 @@ int8_t pwm_olli = 0;
 //expose functions
 int8_t timeToInt(struct tm *timeinfo, const char *format);
 void displaySeconds(int currentSeconds);
-void assignMinutes(int currentMinutes);
-void assignHours(int currentHours);
+void assignNumToLeds(int num, const int *leds, const int s);
 void showLocalTime();
 void getTimeFromNtp();
-void configModeCallback (WiFiManager *myWiFiManager);
+void configModeCallback(WiFiManager *myWiFiManager);
 
 void setup()
 {
@@ -81,7 +82,7 @@ void getTimeFromNtp()
 {
   //WiFiManager
   WiFiManager wifiManager;
-  wifiManager.setConfigPortalTimeout(180);
+  //wifiManager.setConfigPortalTimeout(60);
   wifiManager.autoConnect("MeterClock");
 
   //init and get the time
@@ -104,8 +105,8 @@ void showLocalTime()
   }
 
   displaySeconds(timeToInt(&timeinfo, "%S"));
-  assignMinutes(timeToInt(&timeinfo, "%M"));
-  assignHours(timeToInt(&timeinfo, "%H"));
+  assignNumToLeds(timeToInt(&timeinfo, "%M"), minuteLeds, LED_MIN_SIZE);
+  assignNumToLeds(timeToInt(&timeinfo, "%H"), hourLeds, LED_HOUR_SIZE);
 
   ledcWrite(LED_PWM_CHANNEL, LED_BRIGHTNESS);
 
@@ -119,39 +120,17 @@ void displaySeconds(int currentSeconds)
   {
     pwm = pwm * -1;
   }
+
+  //Ollis custom analoque display can't handle full 3v3. pushed down to 'bout 0.7V
   pwm_olli = map(pwm, 0, 127, 0, 55);
 
   ledcWrite(ANALOGUE_DISPLAY_CHANNEL, pwm_olli);
 }
 
-void assignMinutes(int currentMinutes)
+void assignNumToLeds(int num, const int *leds, const int s)
 {
-  for (int i = 5; i >= 0; i--)
-  {
-    if (bitRead(currentMinutes, i) == 1)
-    {
-      ledcAttachPin(minuteLeds[i], LED_PWM_CHANNEL);
-    }
-    else
-    {
-      ledcDetachPin(minuteLeds[i]);
-    }
-  }
-}
-
-void assignHours(int currentHours)
-{
-  for (int i = 4; i >= 0; i--)
-  {
-    if (bitRead(currentHours, i) == 1)
-    {
-      ledcAttachPin(hourLeds[i], LED_PWM_CHANNEL);
-    }
-    else
-    {
-      ledcDetachPin(hourLeds[i]);
-    }
-  }
+  for (int i = s - 1; i >= 0; i--)
+    bitRead(num, i) ? ledcAttachPin(leds[i], LED_PWM_CHANNEL) : ledcDetachPin(leds[i]);
 }
 
 int8_t timeToInt(struct tm *timeinfo, const char *format)
