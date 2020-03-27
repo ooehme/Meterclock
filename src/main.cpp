@@ -18,6 +18,7 @@ time_t nextUpdateTime;
 
 //Led Brightness
 uint8_t LED_BRIGHTNESS = 128;
+#define LED_BRIGHTNESS_MIN 32
 
 //Minutes LEDs
 #define LED_MIN_1_PIN 23
@@ -69,13 +70,15 @@ void setup()
 
 void loop()
 {
-  delay(1000);
+  delay(250);
   showLocalTime();
   if (currentTime >= nextUpdateTime)
   {
     Serial.println("UPDATE TIME");
     getTimeFromNtp();
   }
+
+  LED_BRIGHTNESS = map(analogRead(PHOTO), 0, 4095, LED_BRIGHTNESS_MIN, 255);
 }
 
 void getTimeFromNtp()
