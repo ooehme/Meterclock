@@ -82,7 +82,7 @@ void loop()
     Serial.println("UPDATE TIME");
     getTimeFromNtp();
   }
-  
+
   showLocalTime();
 
   Serial.println(analogRead(PHOTO));
