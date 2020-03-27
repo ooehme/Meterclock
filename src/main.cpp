@@ -17,8 +17,8 @@ time_t nextUpdateTime;
 #define ANALOGUE_DISPLAY_CHANNEL 1
 
 //Analogue display backlight hysteresis 0-4095
-#define ANALOGUE_BACKLIGHT_ON 1000
-#define ANALOGUE_BACKLIGHT_OFF 1500
+#define ANALOGUE_BACKLIGHT_ON_LIMIT 1000
+#define ANALOGUE_BACKLIGHT_OFF_LIMIT 1500
 
 //Led Brightness
 uint8_t LED_BRIGHTNESS = 128;
@@ -142,12 +142,12 @@ void displaySeconds(int currentSeconds)
 
 void switchBacklight(int photoValue)
 {
-  if (photoValue < ANALOGUE_BACKLIGHT_ON)
+  if (photoValue < ANALOGUE_BACKLIGHT_ON_LIMIT)
   {
     digitalWrite(ANALOGUE_BACKLIGHT_PIN, HIGH);
   }
 
-  if (photoValue > ANALOGUE_BACKLIGHT_OFF)
+  if (photoValue > ANALOGUE_BACKLIGHT_OFF_LIMIT)
   {
     digitalWrite(ANALOGUE_BACKLIGHT_PIN, LOW);
   }
