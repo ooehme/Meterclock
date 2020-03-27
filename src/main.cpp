@@ -86,7 +86,6 @@ void loop()
   }
 
   Serial.println(analogRead(PHOTO));
-  //Serial.println(analogRead(PHOTO), DEC);
 
   int photoValue = analogRead(PHOTO);
   LED_BRIGHTNESS = map(photoValue, 0, 4095, LED_BRIGHTNESS_MIN, LED_BRIGHTNESS_MAX);
@@ -95,18 +94,15 @@ void loop()
 
 void getTimeFromNtp()
 {
-  //WiFiManager
   WiFiManager wifiManager;
-  //wifiManager.setConfigPortalTimeout(60);
   wifiManager.autoConnect("MeterClock");
 
-  //init and get the time
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
   showLocalTime();
 
-  //disconnect WiFi as it's no longer needed
   WiFi.disconnect(true);
   WiFi.mode(WIFI_OFF);
+
   nextUpdateTime = currentTime + updateDelay_sec;
 }
 
@@ -139,7 +135,7 @@ void displaySeconds(int currentSeconds)
   //Ollis custom analoque display can't handle full 3v3. pushed down to 'bout 0.7V
   pwm_olli = map(pwm, 0, 127, 0, 55);
 
-  //ledcWrite(ANALOGUE_DISPLAY_CHANNEL, pwm_olli);
+  ledcWrite(ANALOGUE_DISPLAY_CHANNEL, pwm_olli);
 }
 
 void assignNumToLeds(int num, const int *leds, const int s)
