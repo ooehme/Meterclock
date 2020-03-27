@@ -89,6 +89,11 @@ void loop()
 
   int photoValue = analogRead(PHOTO);
 
+  if(photoValue < 800)
+  {
+      photoValue = 800;
+  }
+
   LED_BRIGHTNESS = map(photoValue, 800, 4095, LED_BRIGHTNESS_MIN, LED_BRIGHTNESS_MAX);
 
   switchBacklight(photoValue);
