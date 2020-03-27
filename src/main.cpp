@@ -24,6 +24,7 @@ time_t nextUpdateTime;
 uint8_t LED_BRIGHTNESS = 128;
 #define LED_BRIGHTNESS_MIN 32
 #define LED_BRIGHTNESS_MAX 160
+#define LED_MIN_PWM 800
 
 //Minutes LEDs
 #define LED_MIN_1_PIN 23
@@ -89,12 +90,12 @@ void loop()
 
   int photoValue = analogRead(PHOTO);
 
-  if(photoValue < 800)
+  if(photoValue < LED_MIN_PWM)
   {
-      photoValue = 800;
+      photoValue = LED_MIN_PWM;
   }
 
-  LED_BRIGHTNESS = map(photoValue, 800, 4095, LED_BRIGHTNESS_MIN, LED_BRIGHTNESS_MAX);
+  LED_BRIGHTNESS = map(photoValue, LED_MIN_PWM, 4095, LED_BRIGHTNESS_MIN, LED_BRIGHTNESS_MAX);
 
   switchBacklight(photoValue);
 
