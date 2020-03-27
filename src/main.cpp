@@ -132,6 +132,7 @@ void showLocalTime()
   assignNumToLeds(timeToInt(&timeinfo, "%H"), hourLeds, LED_HOUR_SIZE);
 
   ledcWrite(LED_PWM_CHANNEL, LED_BRIGHTNESS);
+  ledcWrite(ANALOGUE_BACKLIGHT_CHANNEL, 255);
 
   time(&currentTime);
 }
