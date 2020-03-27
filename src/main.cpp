@@ -16,9 +16,15 @@ time_t nextUpdateTime;
 #define LED_PWM_CHANNEL 0
 #define ANALOGUE_DISPLAY_CHANNEL 1
 
+//Analogue Display Brightness
+uint8_t ANALOGUE_DISPLAY_BRIGHTNESS = 128;
+#define ANALOGUE_DISPLAY_BRIGHTNESS_MIN 32
+#define ANALOGUE_DISPLAY_BRIGHTNESS_MAX 160
+
 //Led Brightness
 uint8_t LED_BRIGHTNESS = 128;
 #define LED_BRIGHTNESS_MIN 32
+#define LED_BRIGHTNESS_MAX 160
 
 //Minutes LEDs
 #define LED_MIN_1_PIN 23
@@ -41,6 +47,7 @@ const int hourLeds[LED_HOUR_SIZE] = {LED_HOUR_1_PIN, LED_HOUR_2_PIN, LED_HOUR_4_
 
 //Seconds analogue display
 #define ANALOGUE_SECONDS_PIN 25
+#define ANALOGUE_BACKLIGHT_PIN 35
 int8_t pwm = 0;
 int8_t pwm_olli = 0;
 
@@ -78,7 +85,12 @@ void loop()
     getTimeFromNtp();
   }
 
-  LED_BRIGHTNESS = map(analogRead(PHOTO), 0, 4095, LED_BRIGHTNESS_MIN, 255);
+  Serial.println(analogRead(PHOTO));
+  //Serial.println(analogRead(PHOTO), DEC);
+
+  int photoValue = analogRead(PHOTO);
+  LED_BRIGHTNESS = map(photoValue, 0, 4095, LED_BRIGHTNESS_MIN, LED_BRIGHTNESS_MAX);
+  ANALOGUE_DISPLAY_BRIGHTNESS = map(photoValue, 0, 4095, ANALOGUE_DISPLAY_BRIGHTNESS_MIN, ANALOGUE_DISPLAY_BRIGHTNESS_MAX);
 }
 
 void getTimeFromNtp()
@@ -127,7 +139,7 @@ void displaySeconds(int currentSeconds)
   //Ollis custom analoque display can't handle full 3v3. pushed down to 'bout 0.7V
   pwm_olli = map(pwm, 0, 127, 0, 55);
 
-  ledcWrite(ANALOGUE_DISPLAY_CHANNEL, pwm_olli);
+  //ledcWrite(ANALOGUE_DISPLAY_CHANNEL, pwm_olli);
 }
 
 void assignNumToLeds(int num, const int *leds, const int s)
