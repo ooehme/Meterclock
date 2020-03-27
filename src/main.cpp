@@ -15,6 +15,7 @@ time_t nextUpdateTime;
 //PWM channels
 #define LED_PWM_CHANNEL 0
 #define ANALOGUE_DISPLAY_CHANNEL 1
+#define ANALOGUE_BACKLIGHT_CHANNEL 2
 
 //Analogue display backlight hysteresis 0-4095
 #define ANALOGUE_BACKLIGHT_ON_LIMIT 1000
@@ -68,6 +69,7 @@ void setup()
   Serial.begin(115200);
 
   ledcSetup(ANALOGUE_DISPLAY_CHANNEL, 4000, 8);
+  ledcSetup(ANALOGUE_BACKLIGHT_CHANNEL, 4000, 8);
   ledcSetup(LED_PWM_CHANNEL, 4000, 8);
 
   ledcAttachPin(ANALOGUE_SECONDS_PIN, ANALOGUE_DISPLAY_CHANNEL);
@@ -143,7 +145,7 @@ void displaySeconds(int currentSeconds)
   }
 
   //Ollis custom analoque display can't handle full 3v3. pushed down to 'bout 0.7V
-  pwm_olli = map(pwm, 0, 127, 0, 55);
+  pwm_olli = map(pwm, 0, 127, 0, 59);
 
   ledcWrite(ANALOGUE_DISPLAY_CHANNEL, pwm_olli);
 }
@@ -152,12 +154,12 @@ void switchBacklight(int photoValue)
 {
   if (photoValue < ANALOGUE_BACKLIGHT_ON_LIMIT)
   {
-    digitalWrite(ANALOGUE_BACKLIGHT_PIN, HIGH);
+    ledcAttachPin(ANALOGUE_BACKLIGHT_PIN, LED_PWM_CHANNEL);
   }
 
   if (photoValue > ANALOGUE_BACKLIGHT_OFF_LIMIT)
   {
-    digitalWrite(ANALOGUE_BACKLIGHT_PIN, LOW);
+    ledcDetachPin(ANALOGUE_BACKLIGHT_PIN);
   }
 }
 
