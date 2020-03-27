@@ -77,7 +77,6 @@ void setup()
 
 void loop()
 {
-  delay(250);
   showLocalTime();
   if (currentTime >= nextUpdateTime)
   {
@@ -92,6 +91,8 @@ void loop()
   LED_BRIGHTNESS = map(photoValue, 0, 4095, LED_BRIGHTNESS_MIN, LED_BRIGHTNESS_MAX);
 
   switchBacklight(photoValue);
+  
+  delay(250);
 }
 
 void getTimeFromNtp()
