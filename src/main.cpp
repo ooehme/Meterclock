@@ -18,14 +18,14 @@ time_t nextUpdateTime;
 #define ANALOGUE_BACKLIGHT_CHANNEL 2
 
 //Analogue display backlight hysteresis 0-4095
-#define ANALOGUE_BACKLIGHT_ON_LIMIT 1000
-#define ANALOGUE_BACKLIGHT_OFF_LIMIT 1500
+#define ANALOGUE_BACKLIGHT_ON_LIMIT 1700
+#define ANALOGUE_BACKLIGHT_OFF_LIMIT 2300
 
 //Led Brightness
-uint8_t LED_BRIGHTNESS = 128;
-#define LED_BRIGHTNESS_MIN 32
-#define LED_BRIGHTNESS_MAX 160
-#define LED_BRIGHTNESS_MIN_PWM 800
+uint8_t LED_BRIGHTNESS = 96;
+#define LED_BRIGHTNESS_MIN 8
+#define LED_BRIGHTNESS_MAX 180
+#define LED_BRIGHTNESS_MIN_PWM 950
 
 //Minutes LEDs
 #define LED_MIN_1_PIN 23
@@ -35,7 +35,8 @@ uint8_t LED_BRIGHTNESS = 128;
 #define LED_MIN_16_PIN 18
 #define LED_MIN_32_PIN 2
 #define LED_MIN_SIZE 6
-const int minuteLeds[LED_MIN_SIZE] = {LED_MIN_1_PIN, LED_MIN_2_PIN, LED_MIN_4_PIN, LED_MIN_8_PIN, LED_MIN_16_PIN, LED_MIN_32_PIN};
+//const int minuteLeds[LED_MIN_SIZE] = {LED_MIN_1_PIN, LED_MIN_2_PIN, LED_MIN_4_PIN, LED_MIN_8_PIN, LED_MIN_16_PIN, LED_MIN_32_PIN}; //LTR
+const int minuteLeds[LED_MIN_SIZE] = {LED_MIN_32_PIN, LED_MIN_16_PIN, LED_MIN_8_PIN, LED_MIN_4_PIN, LED_MIN_2_PIN, LED_MIN_1_PIN}; //RTL
 
 //Hours LEDs
 #define LED_HOUR_1_PIN 26
@@ -44,11 +45,12 @@ const int minuteLeds[LED_MIN_SIZE] = {LED_MIN_1_PIN, LED_MIN_2_PIN, LED_MIN_4_PI
 #define LED_HOUR_8_PIN 12
 #define LED_HOUR_16_PIN 13
 #define LED_HOUR_SIZE 5
-const int hourLeds[LED_HOUR_SIZE] = {LED_HOUR_1_PIN, LED_HOUR_2_PIN, LED_HOUR_4_PIN, LED_HOUR_8_PIN, LED_HOUR_16_PIN};
+//const int hourLeds[LED_HOUR_SIZE] = {LED_HOUR_1_PIN, LED_HOUR_2_PIN, LED_HOUR_4_PIN, LED_HOUR_8_PIN, LED_HOUR_16_PIN}; //LTR
+const int hourLeds[LED_HOUR_SIZE] = {LED_HOUR_16_PIN, LED_HOUR_8_PIN, LED_HOUR_4_PIN, LED_HOUR_2_PIN, LED_HOUR_1_PIN}; //RTL
 
 //Seconds analogue display
 #define ANALOGUE_SECONDS_PIN 25
-#define ANALOGUE_BACKLIGHT_PIN 35
+#define ANALOGUE_BACKLIGHT_PIN 4
 int8_t pwm = 0;
 int8_t pwm_olli = 0;
 
@@ -68,9 +70,9 @@ void setup()
 {
   Serial.begin(115200);
 
+  ledcSetup(LED_PWM_CHANNEL, 4000, 8);
   ledcSetup(ANALOGUE_DISPLAY_CHANNEL, 4000, 8);
   ledcSetup(ANALOGUE_BACKLIGHT_CHANNEL, 4000, 8);
-  ledcSetup(LED_PWM_CHANNEL, 4000, 8);
 
   ledcAttachPin(ANALOGUE_SECONDS_PIN, ANALOGUE_DISPLAY_CHANNEL);
   WiFi.setHostname("Meterclock");
@@ -155,7 +157,7 @@ void switchBacklight(int photoValue)
 {
   if (photoValue < ANALOGUE_BACKLIGHT_ON_LIMIT)
   {
-    ledcAttachPin(ANALOGUE_BACKLIGHT_PIN, LED_PWM_CHANNEL);
+    ledcAttachPin(ANALOGUE_BACKLIGHT_PIN, ANALOGUE_BACKLIGHT_CHANNEL);
   }
 
   if (photoValue > ANALOGUE_BACKLIGHT_OFF_LIMIT)
