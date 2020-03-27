@@ -15,11 +15,12 @@ time_t nextUpdateTime;
 //PWM channels
 #define LED_PWM_CHANNEL 0
 #define ANALOGUE_DISPLAY_CHANNEL 1
+#define ANALOGUE_BACKLIGHT_CHANNEL 2
 
 //Analogue Display Brightness
-uint8_t ANALOGUE_DISPLAY_BRIGHTNESS = 128;
-#define ANALOGUE_DISPLAY_BRIGHTNESS_MIN 32
-#define ANALOGUE_DISPLAY_BRIGHTNESS_MAX 160
+uint8_t ANALOGUE_BACKLIGHT_BRIGHTNESS = 128;
+#define ANALOGUE_BACKLIGHT_BRIGHTNESS_MIN 32
+#define ANALOGUE_BACKLIGHT_BRIGHTNESS_MAX 160
 
 //Led Brightness
 uint8_t LED_BRIGHTNESS = 128;
@@ -68,6 +69,7 @@ void setup()
 
   ledcSetup(ANALOGUE_DISPLAY_CHANNEL, 4000, 8);
   ledcSetup(LED_PWM_CHANNEL, 4000, 8);
+  ledcSetup(ANALOGUE_BACKLIGHT_CHANNEL, 4000, 8);
 
   ledcAttachPin(ANALOGUE_SECONDS_PIN, ANALOGUE_DISPLAY_CHANNEL);
   WiFi.setHostname("Meterclock");
@@ -89,7 +91,7 @@ void loop()
 
   int photoValue = analogRead(PHOTO);
   LED_BRIGHTNESS = map(photoValue, 0, 4095, LED_BRIGHTNESS_MIN, LED_BRIGHTNESS_MAX);
-  ANALOGUE_DISPLAY_BRIGHTNESS = map(photoValue, 0, 4095, ANALOGUE_DISPLAY_BRIGHTNESS_MIN, ANALOGUE_DISPLAY_BRIGHTNESS_MAX);
+  ANALOGUE_BACKLIGHT_BRIGHTNESS = map(photoValue, 0, 4095, ANALOGUE_BACKLIGHT_BRIGHTNESS_MIN, ANALOGUE_BACKLIGHT_BRIGHTNESS_MAX);
 }
 
 void getTimeFromNtp()
@@ -136,6 +138,7 @@ void displaySeconds(int currentSeconds)
   pwm_olli = map(pwm, 0, 127, 0, 55);
 
   ledcWrite(ANALOGUE_DISPLAY_CHANNEL, pwm_olli);
+  ledcWrite(ANALOGUE_BACKLIGHT_CHANNEL, ANALOGUE_BACKLIGHT_BRIGHTNESS);
 }
 
 void assignNumToLeds(int num, const int *leds, const int s)
