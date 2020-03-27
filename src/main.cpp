@@ -77,12 +77,13 @@ void setup()
 
 void loop()
 {
-  showLocalTime();
   if (currentTime >= nextUpdateTime)
   {
     Serial.println("UPDATE TIME");
     getTimeFromNtp();
   }
+  
+  showLocalTime();
 
   Serial.println(analogRead(PHOTO));
 
@@ -91,7 +92,7 @@ void loop()
   LED_BRIGHTNESS = map(photoValue, 0, 4095, LED_BRIGHTNESS_MIN, LED_BRIGHTNESS_MAX);
 
   switchBacklight(photoValue);
-  
+
   delay(250);
 }
 
