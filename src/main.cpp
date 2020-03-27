@@ -15,12 +15,10 @@ time_t nextUpdateTime;
 //PWM channels
 #define LED_PWM_CHANNEL 0
 #define ANALOGUE_DISPLAY_CHANNEL 1
-#define ANALOGUE_BACKLIGHT_CHANNEL 2
 
-//Analogue Display Brightness
-uint8_t ANALOGUE_BACKLIGHT_BRIGHTNESS = 128;
-#define ANALOGUE_BACKLIGHT_BRIGHTNESS_MIN 32
-#define ANALOGUE_BACKLIGHT_BRIGHTNESS_MAX 160
+//Analogue display backlight hysteresis 0-4095
+#define ANALOGUE_BACKLIGHT_ON 1000
+#define ANALOGUE_BACKLIGHT_OFF 1500
 
 //Led Brightness
 uint8_t LED_BRIGHTNESS = 128;
@@ -62,6 +60,7 @@ void assignNumToLeds(int num, const int *leds, const int s);
 void showLocalTime();
 void getTimeFromNtp();
 void configModeCallback(WiFiManager *myWiFiManager);
+void switchBacklight(int photoValue);
 
 void setup()
 {
@@ -69,7 +68,6 @@ void setup()
 
   ledcSetup(ANALOGUE_DISPLAY_CHANNEL, 4000, 8);
   ledcSetup(LED_PWM_CHANNEL, 4000, 8);
-  ledcSetup(ANALOGUE_BACKLIGHT_CHANNEL, 4000, 8);
 
   ledcAttachPin(ANALOGUE_SECONDS_PIN, ANALOGUE_DISPLAY_CHANNEL);
   WiFi.setHostname("Meterclock");
@@ -90,8 +88,10 @@ void loop()
   Serial.println(analogRead(PHOTO));
 
   int photoValue = analogRead(PHOTO);
+
   LED_BRIGHTNESS = map(photoValue, 0, 4095, LED_BRIGHTNESS_MIN, LED_BRIGHTNESS_MAX);
-  ANALOGUE_BACKLIGHT_BRIGHTNESS = map(photoValue, 0, 4095, ANALOGUE_BACKLIGHT_BRIGHTNESS_MIN, ANALOGUE_BACKLIGHT_BRIGHTNESS_MAX);
+
+  switchBacklight(photoValue);
 }
 
 void getTimeFromNtp()
@@ -138,7 +138,19 @@ void displaySeconds(int currentSeconds)
   pwm_olli = map(pwm, 0, 127, 0, 55);
 
   ledcWrite(ANALOGUE_DISPLAY_CHANNEL, pwm_olli);
-  ledcWrite(ANALOGUE_BACKLIGHT_CHANNEL, ANALOGUE_BACKLIGHT_BRIGHTNESS);
+}
+
+void switchBacklight(int photoValue)
+{
+  if (photoValue < ANALOGUE_BACKLIGHT_ON)
+  {
+    digitalWrite(ANALOGUE_BACKLIGHT_PIN, HIGH);
+  }
+
+  if (photoValue > ANALOGUE_BACKLIGHT_OFF)
+  {
+    digitalWrite(ANALOGUE_BACKLIGHT_PIN, LOW);
+  }
 }
 
 void assignNumToLeds(int num, const int *leds, const int s)
