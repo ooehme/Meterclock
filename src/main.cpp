@@ -90,8 +90,6 @@ void loop()
 
   showLocalTime();
 
-  Serial.println(analogRead(PHOTO));
-
   int photoValue = analogRead(PHOTO);
 
   if(photoValue < LED_BRIGHTNESS_MIN_PWM)
