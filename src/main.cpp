@@ -7,8 +7,6 @@
 
 const char *ntpServer = "de.pool.ntp.org";
 const char *TZ_INFO = "CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00";
-const long gmtOffset_sec = 0;
-const int daylightOffset_sec = 3600;
 const int updateDelay_sec = 86400; // wait for one day to update from ntp
 time_t currentTime;
 time_t nextUpdateTime;
