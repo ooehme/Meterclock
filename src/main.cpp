@@ -130,6 +130,9 @@ void showLocalTime()
   assignNumToLeds(timeToInt(&timeinfo, "%M"), minuteLeds, LED_MIN_SIZE);
   assignNumToLeds(timeToInt(&timeinfo, "%H"), hourLeds, LED_HOUR_SIZE);
 
+  
+    Serial.println("-----");
+
   ledcWrite(LED_PWM_CHANNEL, LED_BRIGHTNESS);
   ledcWrite(ANALOGUE_BACKLIGHT_CHANNEL, 255);
 
@@ -165,8 +168,22 @@ void switchBacklight(int photoValue)
 
 void assignNumToLeds(int num, const int *leds, const int s)
 {
-  for (int i = s - 1; i >= 0; i--)
-    bitRead(num, i) ? ledcAttachPin(leds[i], LED_PWM_CHANNEL) : ledcDetachPin(leds[i]);
+  //for (int i = s - 1; i >= 0; i--)
+    //bitRead(num, i) ? ledcAttachPin(leds[i], LED_PWM_CHANNEL) : ledcDetachPin(leds[i]);
+    for (int i = s - 1; i >= 0; i--){
+      if(bitRead(num, i) == 1){
+        ledcAttachPin(leds[i], LED_PWM_CHANNEL);
+        Serial.print("1");
+      }
+      else
+      {
+        ledcDetachPin(leds[i]);        
+        Serial.print("0");
+      }
+    }
+    
+    Serial.print(" = ");
+    Serial.println(num);
 }
 
 int8_t timeToInt(struct tm *timeinfo, const char *format)
