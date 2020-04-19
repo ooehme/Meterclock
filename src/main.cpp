@@ -9,7 +9,7 @@
 //const char *ntpServer = "de.pool.ntp.org";
 const char *ntpServer = "fritz.box";
 const char *TZ_INFO = "CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00";
-const int updateDelay_sec = 3600;
+const int updateDelay_sec = 30;
 struct tm timeinfo;
 time_t currentTime;
 time_t nextUpdateTime;
@@ -116,6 +116,7 @@ void loop()
   {
     Serial.println("Failed to obtain time");
   }
+  time(&currentTime);
 
   //rtc sync cycle
   if (currentTime >= nextUpdateTime)
@@ -135,8 +136,6 @@ void synchRTCLoop(void *parameter)
 
   for (;;)
   {
-    nextUpdateTime = currentTime + updateDelay_sec;
-
     //wait for update time flag
     if (xQueueReceive(updateTimeQueue, &updateTimeFlag, portMAX_DELAY))
     {
@@ -155,8 +154,6 @@ void displayLoop(void *parameter)
   {
     if (xQueueReceive(updateDisplayQueue, &updateDisplayFlag, portMAX_DELAY))
     {
-      Serial.print("update display: ");
-      Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
       displaySeconds(timeToInt(&timeinfo, "%S"));
       assignNumToLeds(timeToInt(&timeinfo, "%M"), minuteLeds, LED_MIN_SIZE);
       assignNumToLeds(timeToInt(&timeinfo, "%H"), hourLeds, LED_HOUR_SIZE);
@@ -182,6 +179,8 @@ void syncTime()
   WiFi.disconnect(true);
   WiFi.mode(WIFI_OFF);
   Serial.println("time synchronized.");
+
+  nextUpdateTime = currentTime + updateDelay_sec;
 }
 
 void brightnessLoop(void *parameter)
