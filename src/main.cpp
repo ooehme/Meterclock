@@ -6,8 +6,7 @@
 #include <WebServer.h>
 #include <WiFiManager.h>
 
-//const char *ntpServer = "de.pool.ntp.org";
-const char *ntpServer = "fritz.box";
+const char *ntpServer = "de.pool.ntp.org";
 const char *TZ_INFO = "CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00";
 const int updateDelay_sec = 30;
 struct tm timeinfo;
@@ -20,8 +19,8 @@ time_t nextUpdateTime;
 #define ANALOGUE_BACKLIGHT_CHANNEL 2
 
 //Analogue display backlight hysteresis 0-4095
-#define ANALOGUE_BACKLIGHT_ON_LIMIT 1700
-#define ANALOGUE_BACKLIGHT_OFF_LIMIT 2300
+#define ANALOGUE_BACKLIGHT_ON_LIMIT 2000
+#define ANALOGUE_BACKLIGHT_OFF_LIMIT 2500
 
 //Led Brightness
 uint8_t LED_BRIGHTNESS = 96;
@@ -64,7 +63,7 @@ bool updateTimeFlag;
 bool updateDisplayFlag;
 
 //tasks
-TaskHandle_t synchRTCTask;
+TaskHandle_t syncRTCTask;
 TaskHandle_t displayTask;
 TaskHandle_t brightnessTask;
 
@@ -74,7 +73,7 @@ QueueHandle_t updateTimeQueue;
 QueueHandle_t updateDisplayQueue;
 
 //expose to compiler
-void synchRTCLoop(void *parameter);
+void syncRTCLoop(void *parameter);
 void displayLoop(void *parameter);
 void brightnessLoop(void *parameter);
 
@@ -102,7 +101,7 @@ void setup()
   updateDisplayQueue = xQueueCreate(1, sizeof(bool));
 
   //init tasks
-  xTaskCreatePinnedToCore(synchRTCLoop, "synchRTC", 2560, NULL, 0, &synchRTCTask, 1);
+  xTaskCreatePinnedToCore(syncRTCLoop, "syncRTC", 2560, NULL, 0, &syncRTCTask, 1);
   xTaskCreatePinnedToCore(displayLoop, "display", 1536, NULL, 0, &displayTask, 1);
   xTaskCreatePinnedToCore(brightnessLoop, "brightness", 1024, NULL, 0, &brightnessTask, 1);
 }
@@ -130,7 +129,7 @@ void loop()
   delay(1000);
 }
 
-void synchRTCLoop(void *parameter)
+void syncRTCLoop(void *parameter)
 {
   bool updateTimeFlag = false;
 
@@ -173,8 +172,10 @@ void syncTime()
   {
     Serial.println("Failed to obtain time");
   }
-
-  time(&currentTime);
+  else
+  {
+    time(&currentTime);
+  }
 
   WiFi.disconnect(true);
   WiFi.mode(WIFI_OFF);
