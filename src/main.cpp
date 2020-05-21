@@ -6,9 +6,10 @@
 #include <WebServer.h>
 #include <WiFiManager.h>
 
+const bool continuousWifi = true;
 const char *ntpServer = "de.pool.ntp.org";
 const char *TZ_INFO = "CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00";
-const int updateDelay_sec = 30;
+const int updateDelay_sec = 28000;
 struct tm timeinfo;
 time_t currentTime;
 time_t nextUpdateTime;
@@ -58,6 +59,10 @@ int8_t pwm_olli = 0;
 //photoresistor
 #define PHOTO 34
 
+//webserver
+WebServer server(80);
+uint16_t lastUpdateTime = 0;
+
 //flags
 bool updateTimeFlag;
 bool updateDisplayFlag;
@@ -82,11 +87,24 @@ int8_t timeToInt(struct tm *timeinfo, const char *format);
 void displaySeconds(int currentSeconds);
 void assignNumToLeds(int num, const int *leds, const int s);
 void syncTime();
+void showWebTime();
+void showLastUpdate();
 
 void setup()
 {
   Serial.begin(115200);
   WiFi.setHostname("Meterclock");
+
+  if (continuousWifi)
+  {
+    WiFiManager wifiManager;
+    wifiManager.autoConnect("MeterClock");
+
+    server.begin();
+    Serial.println("HTTP Server gestartet (80)");
+    server.on("/", showWebTime);
+    server.on("/lastupdate", showLastUpdate);
+  }
 
   syncTime();
 
@@ -102,7 +120,7 @@ void setup()
 
   //init tasks
   xTaskCreatePinnedToCore(syncRTCLoop, "syncRTC", 2560, NULL, 0, &syncRTCTask, 1);
-  xTaskCreatePinnedToCore(displayLoop, "display", 1536, NULL, 0, &displayTask, 1);
+  xTaskCreatePinnedToCore(displayLoop, "display", 2048, NULL, 0, &displayTask, 1);
   xTaskCreatePinnedToCore(brightnessLoop, "brightness", 1024, NULL, 0, &brightnessTask, 1);
 }
 
@@ -126,6 +144,7 @@ void loop()
   //send update display flag
   xQueueSend(updateDisplayQueue, &updateDisplayFlag, QueueDelay);
 
+  server.handleClient();
   delay(1000);
 }
 
@@ -162,9 +181,14 @@ void displayLoop(void *parameter)
 
 void syncTime()
 {
+  Serial.print("Time before sync: ");
+  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
   Serial.println("synchronizing rtc to ntp ...");
-  WiFiManager wifiManager;
-  wifiManager.autoConnect("MeterClock");
+  if (!continuousWifi)
+  {
+    WiFiManager wifiManager;
+    wifiManager.autoConnect("MeterClock");
+  }
 
   configTzTime(TZ_INFO, ntpServer);
 
@@ -175,13 +199,21 @@ void syncTime()
   else
   {
     time(&currentTime);
+    lastUpdateTime = millis();
   }
 
-  WiFi.disconnect(true);
-  WiFi.mode(WIFI_OFF);
+  if (!continuousWifi)
+  {
+    WiFi.disconnect(true);
+    WiFi.mode(WIFI_OFF);
+  }
+
   Serial.println("time synchronized.");
 
   nextUpdateTime = currentTime + updateDelay_sec;
+
+  Serial.print("Time after sync: ");
+  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
 }
 
 void brightnessLoop(void *parameter)
@@ -213,6 +245,23 @@ void brightnessLoop(void *parameter)
 
     delay(100);
   }
+}
+
+void showWebTime()
+{
+  char currentTimeString[50];
+  strftime(currentTimeString, sizeof(currentTimeString), "%A, %B %d %Y %H:%M:%S", &timeinfo);
+  server.send(200, "text/plain", currentTimeString);
+}
+
+void showLastUpdate(){
+  String lastUpdate = String((millis()- lastUpdateTime)/60000, DEC);
+  server.send(200, "text/plain", lastUpdate);
+}
+
+void handleNotFound()
+{
+  server.send(404, "text/plain", "File Not Found\n\n");
 }
 
 void displaySeconds(int currentSeconds)
